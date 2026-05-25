@@ -34,9 +34,9 @@ export function MessageBubble({ message }: Props) {
   if (isUser) {
     return (
       <div className="flex justify-end animate-fade-up">
-        <div className="flex items-end gap-2.5 max-w-[75%]">
+        <div className="flex items-end gap-2.5 max-w-[75%] min-w-0">
           <div
-            className="px-4 py-3 rounded-2xl rounded-br-sm text-sm text-white leading-relaxed shadow-sm"
+            className="px-4 py-3 rounded-2xl rounded-br-sm text-sm text-white leading-relaxed shadow-sm break-words"
             style={{ background: "linear-gradient(135deg, #0055AA 0%, #0066CC 100%)" }}
           >
             {message.content}
@@ -52,20 +52,20 @@ export function MessageBubble({ message }: Props) {
   // Assistant
   return (
     <div className="flex justify-start animate-fade-up">
-      <div className="flex items-end gap-2.5 max-w-[82%]">
+      <div className="flex items-end gap-2.5 max-w-[82%] min-w-0 w-full">
         {/* Avatar */}
         <div className="flex-shrink-0 w-7 h-7 rounded-full bg-ceat-dark flex items-center justify-center mb-0.5 shadow-sm">
           <Torus size={13} className="text-ceat-orange" />
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 overflow-hidden">
           {/* Tool steps */}
           {message.toolSteps && message.toolSteps.length > 0 && (
             <ToolSteps steps={message.toolSteps} />
           )}
 
           {/* Message content */}
-          <div className="bg-white rounded-2xl rounded-bl-sm border border-slate-200 shadow-sm px-4 py-3">
+          <div className="bg-white rounded-2xl rounded-bl-sm border border-slate-200 shadow-sm px-4 py-3 overflow-x-auto">
             {message.isStreaming && !message.content ? (
               <ThinkingDots />
             ) : message.content ? (

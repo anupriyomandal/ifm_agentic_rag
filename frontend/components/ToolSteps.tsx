@@ -78,7 +78,7 @@ export function ToolSteps({ steps }: Props) {
               {/* Content */}
               <div className="flex-1 min-w-0 pt-0.5">
                 {/* Function call */}
-                <div className="font-mono leading-relaxed break-all">
+                <div className="font-mono leading-relaxed break-all overflow-hidden">
                   <span className="font-semibold text-ceat-blue">{step.name}</span>
                   <span className="text-slate-400">{formatArgs(step.args as Record<string, unknown>)}</span>
                 </div>
