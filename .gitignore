@@ -20,8 +20,8 @@ venv/
 
 # Logs & temp
 *.log
-*.txt
 *.png
+r09_check.txt
 
 # Claude Code
 .claude/
