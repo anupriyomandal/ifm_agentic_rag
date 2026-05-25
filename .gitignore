@@ -3,7 +3,7 @@
 .env.local
 
 # Large data files
-data/
+data/*.csv
 price_list/
 
 # Python
