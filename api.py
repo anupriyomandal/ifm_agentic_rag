@@ -15,11 +15,9 @@ from tools import get_column_stats, get_office_names, get_schema, get_value_coun
 
 app = FastAPI(title="IFM Tyre Advisor API")
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
