@@ -211,7 +211,17 @@ def agent_stream(question: str, history: list) -> Generator[str, None, None]:
                 tool_choice="auto",
             )
             msg = response.choices[0].message
-            history.append(msg)
+            msg_dict: dict = {"role": "assistant", "content": msg.content}
+            if msg.tool_calls:
+                msg_dict["tool_calls"] = [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                    }
+                    for tc in msg.tool_calls
+                ]
+            history.append(msg_dict)
 
             if not msg.tool_calls:
                 yield f"data: {json.dumps({'type': 'content', 'text': msg.content})}\n\n"
