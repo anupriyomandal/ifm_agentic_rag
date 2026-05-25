@@ -31,30 +31,6 @@ export function SuggestedQueries({ onSelect }: Props) {
         </p>
       </div>
 
-      {/* Suggested queries grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
-        {SUGGESTIONS.map((s) => (
-          <button
-            key={s.query}
-            onClick={() => onSelect(s.query)}
-            className="group flex items-center gap-3 text-left px-4 py-3.5 rounded-xl
-              bg-white border border-slate-200 hover:border-ceat-blue/40
-              hover:shadow-md shadow-sm transition-all duration-200"
-          >
-            <div className="flex-1">
-              <div className="text-xs font-semibold text-ceat-blue uppercase tracking-wider mb-0.5">
-                {s.label}
-              </div>
-              <div className="text-slate-500 text-xs leading-snug">{s.query}</div>
-            </div>
-            <ArrowRight
-              size={14}
-              className="text-slate-300 group-hover:text-ceat-orange flex-shrink-0
-                group-hover:translate-x-0.5 transition-all duration-200"
-            />
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

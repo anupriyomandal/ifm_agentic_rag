@@ -34,14 +34,11 @@ export function ChatArea({ messages, isStreaming, onSend, onClear }: Props) {
         </div>
 
         {/* Title */}
-        <div>
-          <div
-            className="text-ceat-dark leading-none tracking-wide"
-            style={{ fontFamily: "var(--font-barlow)", fontSize: "1.05rem", fontWeight: 700 }}
-          >
-            IFM Tyre Advisor
-          </div>
-          <div className="text-slate-400 text-[10px] mt-0.5 leading-none">CEAT · GPT-4.1</div>
+        <div
+          className="text-ceat-dark leading-none tracking-wide"
+          style={{ fontFamily: "var(--font-barlow)", fontSize: "1.05rem", fontWeight: 700 }}
+        >
+          IFM Tyre Advisor
         </div>
 
         {/* Right side */}
@@ -82,6 +79,9 @@ export function ChatArea({ messages, isStreaming, onSend, onClear }: Props) {
       <div className="bg-white border-t border-slate-200 flex-shrink-0">
         <div className="max-w-3xl mx-auto">
           <ChatInput onSend={onSend} disabled={isStreaming} />
+        </div>
+        <div className="text-center text-[10px] text-slate-300 pb-2">
+          Made By Anupriyo Mandal
         </div>
       </div>
     </main>
