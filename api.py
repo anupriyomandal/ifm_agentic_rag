@@ -61,10 +61,19 @@ Crossply / bias-ply sizes (hyphen, no R):
 - General rule: insert a dot after the first two digits, e.g. "1000" → "10.00"
 
 ## Tyre pattern / type filtering
-When a user mentions a tyre type like "Rib", "Lug", "Radial", "Crossply":
-- "Rib" → filter `BRAND NAME` with `df['BRAND NAME'].str.contains('RIB', case=False, na=False)`
-- "Lug" → filter `BRAND NAME` with `df['BRAND NAME'].str.contains('LUG', case=False, na=False)`
-- "Radial" / "Crossply" → filter on `CONSTRUCTION` column: `df['CONSTRUCTION'] == 'Radial'` or `== 'Crossply'`
+
+For crossply (bias-ply) tyres, RIB = front axle and LUG = rear axle. Use the `AXLE NAME` column:
+
+| User says | Filter |
+|-----------|--------|
+| Crossply RIB | `(df['CONSTRUCTION'] == 'Crossply') & (df['AXLE NAME'] == 'Front Axle')` |
+| Crossply LUG | `(df['CONSTRUCTION'] == 'Crossply') & (df['AXLE NAME'].str.contains('Rear', na=False))` |
+| Radial | `df['CONSTRUCTION'] == 'Radial'` |
+| Crossply | `df['CONSTRUCTION'] == 'Crossply'` |
+
+Valid `AXLE NAME` values: `'Front Axle'`, `'Rear-Drive Axle'`, `'Rear-Dummy Axle'`, `'Rear-Lift Axle'`, `'Trolley Axle'`, `'Drive Axle'`
+
+Do NOT use BRAND NAME string matching for RIB/LUG — many crossply brands do not carry those words in their name.
 
 ## Geography filtering — CRITICAL RULES
 
