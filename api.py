@@ -45,11 +45,26 @@ The dataset has 845,432 inspection records and 87 columns stored in data/ifm.par
 | Region Description | Full region name e.g. "Kolkata". Column added from RO CODE. |
 
 ## Tyre size format
-Sizes in the data use the full decimal format. Always verify with get_value_counts() if a filter returns 0 rows.
-- User says "11R20"  → data stores "11.00R20"
-- User says "10R20"  → data stores "10.00R20"
-- User says "9R20"   → data stores "9.00R20"
-- User says "12R20"  → data stores "12.00R20"
+Sizes in the data use the full decimal format. Always verify with get_value_counts('TYRE SIZE') if a filter returns 0 rows.
+
+Radial sizes (R):
+- User says "11R20"   → data stores "11.00R20"
+- User says "10R20"   → data stores "10.00R20"
+- User says "9R20"    → data stores "9.00R20"
+- User says "12R20"   → data stores "12.00R20"
+
+Crossply / bias-ply sizes (hyphen, no R):
+- User says "1000-20" → data stores "10.00-20"
+- User says "900-20"  → data stores "9.00-20"
+- User says "825-20"  → data stores "8.25-20"
+- User says "1100-20" → data stores "11.00-20"
+- General rule: insert a dot after the first two digits, e.g. "1000" → "10.00"
+
+## Tyre pattern / type filtering
+When a user mentions a tyre type like "Rib", "Lug", "Radial", "Crossply":
+- "Rib" → filter `BRAND NAME` with `df['BRAND NAME'].str.contains('RIB', case=False, na=False)`
+- "Lug" → filter `BRAND NAME` with `df['BRAND NAME'].str.contains('LUG', case=False, na=False)`
+- "Radial" / "Crossply" → filter on `CONSTRUCTION` column: `df['CONSTRUCTION'] == 'Radial'` or `== 'Crossply'`
 
 ## Geography filtering — CRITICAL RULES
 
