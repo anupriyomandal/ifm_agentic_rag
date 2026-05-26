@@ -64,6 +64,20 @@ export function MessageBubble({ message }: Props) {
             <ToolSteps steps={message.toolSteps} />
           )}
 
+          {/* Charts */}
+          {message.charts && message.charts.length > 0 && (
+            <div className="mb-3 space-y-3">
+              {message.charts.map((chart, i) => (
+                <div key={i} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  {chart.title && (
+                    <div className="px-4 pt-3 text-xs font-semibold text-ceat-dark">{chart.title}</div>
+                  )}
+                  <img src={chart.image} alt={chart.title || "Chart"} className="w-full h-auto" />
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Message content */}
           <div className="bg-white rounded-2xl rounded-bl-sm border border-slate-200 shadow-sm px-4 py-3 overflow-x-auto">
             {message.isStreaming && !message.content ? (

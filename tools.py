@@ -1,7 +1,11 @@
+import base64
 import io
 import traceback
 from contextlib import redirect_stdout
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import pandas as pd
 
 DATA_PATH = "data/ifm.parquet"
@@ -137,6 +141,99 @@ def get_column_stats(column: str) -> str:
     if column not in df.columns:
         return f"Column '{column}' not found. Call get_schema() to see valid names."
     return df[column].describe().to_string()
+
+
+def create_chart(chart_type: str, code: str, title: str = "", x_label: str = "", y_label: str = "") -> str:
+    """Run pandas code to produce data, then render a chart. Returns a base64 PNG data-URI.
+    chart_type: 'bar' | 'line' | 'scatter'
+    code: pandas code with df + pd pre-loaded; assign result to a pandas Series (index=labels, values=numbers)
+          or a plain dict {label: value}.
+    """
+    for blocked in _BLOCKED:
+        if blocked in code:
+            return f"Error: '{blocked}' is not permitted."
+
+    df = _get_df()
+    local_vars: dict = {"df": df.copy(), "pd": pd}
+    try:
+        exec(code, {"pd": pd, "__builtins__": __builtins__}, local_vars)  # noqa: S102
+    except Exception:
+        return f"Error in chart code:\n{traceback.format_exc()}"
+
+    result = local_vars.get("result")
+    if result is None:
+        return "Error: code must assign data to 'result' (Series or dict)."
+
+    # Normalise to labels / values lists
+    if isinstance(result, dict):
+        labels = [str(k) for k in result.keys()]
+        values = [float(v) for v in result.values()]
+    elif isinstance(result, pd.Series):
+        labels = [str(i) for i in result.index.tolist()]
+        values = [float(v) for v in result.values.tolist()]
+    elif isinstance(result, pd.DataFrame) and result.shape[1] == 2:
+        labels = result.iloc[:, 0].astype(str).tolist()
+        values = [float(v) for v in result.iloc[:, 1].tolist()]
+    else:
+        return "Error: 'result' must be a dict, Series, or 2-column DataFrame."
+
+    # Build chart
+    fig, ax = plt.subplots(figsize=(10, 5))
+    fig.patch.set_facecolor("#F8FAFC")
+    ax.set_facecolor("#F8FAFC")
+    for spine in ["top", "right"]:
+        ax.spines[spine].set_visible(False)
+    for spine in ["left", "bottom"]:
+        ax.spines[spine].set_color("#CBD5E1")
+    ax.tick_params(colors="#64748B", labelsize=9)
+    ax.grid(axis="y", color="#E2E8F0", linewidth=0.8, linestyle="--", zorder=0)
+
+    BLUE, ORANGE = "#0055AA", "#F58220"
+
+    if chart_type == "bar":
+        bars = ax.bar(range(len(labels)), values, color=BLUE, width=0.6, zorder=3)
+        ax.set_xticks(range(len(labels)))
+        ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=8)
+        max_v = max(values) if values else 1
+        for bar, val in zip(bars, values):
+            ax.text(bar.get_x() + bar.get_width() / 2, val + max_v * 0.015,
+                    f"{val:.3f}", ha="center", va="bottom", fontsize=7.5, color="#334155")
+
+    elif chart_type == "line":
+        xs = range(len(labels))
+        ax.plot(xs, values, color=BLUE, linewidth=2.5, marker="o",
+                markersize=6, markerfacecolor=ORANGE, markeredgecolor="white",
+                markeredgewidth=1.5, zorder=3)
+        ax.fill_between(xs, values, alpha=0.08, color=BLUE)
+        ax.set_xticks(xs)
+        ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=8)
+
+    elif chart_type in ("scatter", "xy"):
+        if values and isinstance(values[0], (list, tuple)):
+            x_vals = [v[0] for v in values]
+            y_vals = [v[1] for v in values]
+        else:
+            x_vals = list(range(len(values)))
+            y_vals = values
+        ax.scatter(x_vals, y_vals, color=BLUE, alpha=0.7, s=60,
+                   edgecolors="white", linewidths=0.8, zorder=3)
+    else:
+        plt.close(fig)
+        return f"Error: unknown chart_type '{chart_type}'. Use 'bar', 'line', or 'scatter'."
+
+    if title:
+        ax.set_title(title, fontsize=12, fontweight="bold", color="#1E293B", pad=12)
+    if x_label:
+        ax.set_xlabel(x_label, fontsize=9, color="#64748B", labelpad=6)
+    if y_label:
+        ax.set_ylabel(y_label, fontsize=9, color="#64748B", labelpad=6)
+
+    plt.tight_layout()
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor=fig.get_facecolor())
+    plt.close(fig)
+    buf.seek(0)
+    return "data:image/png;base64," + base64.b64encode(buf.read()).decode()
 
 
 def get_office_names(state: str) -> str:

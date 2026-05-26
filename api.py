@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 load_dotenv()
 
-from tools import get_column_stats, get_office_names, get_schema, get_value_counts, run_pandas
+from tools import create_chart, get_column_stats, get_office_names, get_schema, get_value_counts, run_pandas
 
 app = FastAPI(title="IFM Tyre Advisor API")
 
@@ -202,6 +202,24 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "create_chart",
+            "description": "Generate a bar, line, or scatter chart from data. ONLY call this when the user explicitly asks for a chart or graph. Write pandas code that assigns a Series or dict {label: value} to 'result', then this tool renders it.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "chart_type": {"type": "string", "enum": ["bar", "line", "scatter"]},
+                    "code": {"type": "string", "description": "Pandas code (df + pd pre-loaded). Apply default filters. Assign result to a Series or dict."},
+                    "title": {"type": "string"},
+                    "x_label": {"type": "string"},
+                    "y_label": {"type": "string"},
+                },
+                "required": ["chart_type", "code"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "get_office_names",
             "description": "Return OFFICE NAME values for a given Indian state. Call before any state-level geography filter.",
             "parameters": {
@@ -220,6 +238,10 @@ def dispatch(name: str, args: dict) -> str:
     if name == "get_value_counts":  return get_value_counts(args["column"])
     if name == "get_column_stats":  return get_column_stats(args["column"])
     if name == "get_office_names":  return get_office_names(args["state"])
+    if name == "create_chart":      return create_chart(
+        args["chart_type"], args["code"],
+        args.get("title", ""), args.get("x_label", ""), args.get("y_label", ""),
+    )
     return f"Unknown tool: {name}"
 
 
@@ -256,12 +278,13 @@ def agent_stream(question: str, history: list) -> Generator[str, None, None]:
                 args = json.loads(tc.function.arguments)
                 yield f"data: {json.dumps({'type': 'tool_call', 'name': tc.function.name, 'args': args})}\n\n"
                 result = dispatch(tc.function.name, args)
-                yield f"data: {json.dumps({'type': 'tool_result', 'name': tc.function.name, 'preview': result[:400]})}\n\n"
-                history.append({
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": result[:10_000],
-                })
+                if result.startswith("data:image/"):
+                    yield f"data: {json.dumps({'type': 'chart', 'image': result, 'title': args.get('title', '')})}\n\n"
+                    yield f"data: {json.dumps({'type': 'tool_result', 'name': tc.function.name, 'preview': 'Chart generated.'})}\n\n"
+                    history.append({"role": "tool", "tool_call_id": tc.id, "content": "Chart generated and displayed to the user."})
+                else:
+                    yield f"data: {json.dumps({'type': 'tool_result', 'name': tc.function.name, 'preview': result[:400]})}\n\n"
+                    history.append({"role": "tool", "tool_call_id": tc.id, "content": result[:10_000]})
 
     except Exception as e:
         yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"

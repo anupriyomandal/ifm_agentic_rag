@@ -61,6 +61,14 @@ export default function Home() {
                 return { ...m, toolSteps: steps };
               })
             );
+          } else if (event.type === "chart") {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? { ...m, charts: [...(m.charts ?? []), { image: event.image, title: event.title }] }
+                  : m
+              )
+            );
           } else if (event.type === "content") {
             setMessages((prev) =>
               prev.map((m) =>

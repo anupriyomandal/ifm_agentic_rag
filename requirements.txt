@@ -7,3 +7,4 @@ polars==1.40.1
 python-dotenv==1.0.1
 pydantic==2.9.2
 python-multipart==0.0.12
+matplotlib==3.9.0
